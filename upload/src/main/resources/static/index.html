@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload File</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+</head>
+
+<body class="bg-gray-100 p-8">
+    <div class="max-w-lg mx-auto bg-white shadow-md rounded p-6">
+        <h1 class="text-2xl font-bold mb-4">Upload File (Image or PDF)</h1>
+
+        <!-- Upload form -->
+        <form id="uploadForm" class="mb-4" enctype="multipart/form-data">
+            <label for="file" class="block mb-2 font-semibold">Choose file:</label>
+            <input type="file" id="files" name="files" accept=".jpg,.jpeg,.png,.pdf" multiple
+                class="block w-full mb-4 p-2 border rounded" required>
+            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                Upload
+            </button>
+        </form>
+
+        <!-- Message display -->
+        <div id="message" class="text-center text-green-600 font-semibold"></div>
+
+        <!-- Uploaded files list -->
+        <h2 class="text-xl font-semibold mt-6">Uploaded Files</h2>
+        <ul id="fileList" class="mt-4 space-y-2">
+            <!-- List of uploaded files will be added here dynamically -->
+        </ul>
+    </div>
+
+    <script>
+        // Upload file
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('files').files;
+            if (fileInput.length === 0) return;
+
+            const formData = new FormData();
+            for (const file of fileInput) {
+                formData.append('files', file); // Thêm file vào FormData
+            }
+
+            try {
+                const response = await fetch('/api/files/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.text();
+                document.getElementById('message').innerText = result;
+                loadFileList();
+            } catch (error) {
+                console.error('Error uploading files:', error);
+            }
+        });
+
+        // Load file list
+        async function loadFileList() {
+            const fileListElement = document.getElementById('fileList');
+            fileListElement.innerHTML = '';
+            try {
+                const response = await fetch('http://localhost:9000/api/files/view/all');  // Update API path if needed
+                const files = await response.json();
+
+                files.forEach(file => {
+                    const li = document.createElement('li');
+                    li.classList.add('flex', 'justify-between', 'items-center', 'border', 'rounded', 'p-2');
+
+                    const fileName = document.createElement('span');
+                    fileName.innerText = file;
+
+                    const viewLink = document.createElement('a');
+                    viewLink.href = `/api/files/view/${file}`;
+                    viewLink.innerText = "View";
+                    viewLink.classList.add('text-blue-500', 'hover:underline', 'mr-4');
+
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = `/api/files/download/${file}`;
+                    downloadLink.innerText = "Download";
+                    downloadLink.classList.add('text-blue-500', 'hover:underline');
+
+                    li.appendChild(fileName);
+                    li.appendChild(viewLink);
+                    li.appendChild(downloadLink);
+
+                    fileListElement.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error loading file list:', error);
+            }
+        }
+
+        async function deleteFile(fileName) {
+            try {
+                const response = await fetch(`/api/files/delete/${fileName}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.text();
+                console.log(result); // Hiển thị thông báo kết quả
+            } catch (error) {
+                console.error('Error deleting file:', error);
+            }
+        }
+
+        // Gọi hàm deleteFile với tên file bạn muốn xóa
+        deleteFile('26189992-77c1-4e41-a37c-3967ce8fd17a_menu (3).pdf');
+
+        async function deleteAllFiles() {
+            try {
+                const response = await fetch('/api/files/delete-all', {
+                    method: 'DELETE'
+                });
+                const result = await response.text();
+                console.log(result); // Hiển thị thông báo kết quả
+            } catch (error) {
+                console.error('Error deleting all files:', error);
+            }
+        }
+
+        // Gọi hàm deleteAllFiles để xóa tất cả file
+        //deleteAllFiles();
+
+
+
+        // Load file list on page load
+        loadFileList();
+    </script>
+</body>
+
+</html>
