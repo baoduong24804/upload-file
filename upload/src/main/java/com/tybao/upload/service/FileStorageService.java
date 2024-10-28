@@ -36,7 +36,7 @@ public class FileStorageService {
             String UUID = uniqueIDCreate(file.getOriginalFilename());
             String UUIDImageName = UUID + file.getOriginalFilename();
             Path targetLocation = this.fileStorageLocation.resolve(UUIDImageName);
-            //System.out.println(targetLocation);
+            System.out.println(targetLocation);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             return targetLocation.getFileName().toString();
         } catch (IOException ex) {

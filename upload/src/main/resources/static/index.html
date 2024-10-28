@@ -18,15 +18,19 @@
             <input type="file" id="files" name="files" accept=".jpg,.jpeg,.png,.pdf" multiple
                 class="block w-full mb-4 p-2 border rounded" required>
             <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                Upload
+                Tải ảnh lên
             </button>
         </form>
+        <button type="button" id="btn_deleteAll" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+            Xóa hết ảnh
+        </button>
 
         <!-- Message display -->
         <div id="message" class="text-center text-green-600 font-semibold"></div>
 
         <!-- Uploaded files list -->
-        <h2 class="text-xl font-semibold mt-6">Uploaded Files</h2>
+        <h2 class="text-xl font-semibold mt-6">Files đã upload</h2>
+        
         <ul id="fileList" class="mt-4 space-y-2">
             <!-- List of uploaded files will be added here dynamically -->
         </ul>
@@ -45,7 +49,7 @@
             }
 
             try {
-                const response = await fetch('/api/files/upload', {
+                const response = await fetch('http://103.20.102.132:9000/api/files/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -62,7 +66,7 @@
             const fileListElement = document.getElementById('fileList');
             fileListElement.innerHTML = '';
             try {
-                const response = await fetch('http://localhost:9000/api/files/view/all');  // Update API path if needed
+                const response = await fetch('http://103.20.102.132:9000/api/files/view/all');  // Update API path if needed
                 const files = await response.json();
 
                 files.forEach(file => {
@@ -70,21 +74,35 @@
                     li.classList.add('flex', 'justify-between', 'items-center', 'border', 'rounded', 'p-2');
 
                     const fileName = document.createElement('span');
+                    fileName.classList.add('overflow-hidden','overflow-ellipsis','whitespace-nowrap');
                     fileName.innerText = file;
 
                     const viewLink = document.createElement('a');
-                    viewLink.href = `/api/files/view/${file}`;
-                    viewLink.innerText = "View";
+                    viewLink.href = `http://103.20.102.132:9000/api/files/view/${file}`;
+                    viewLink.innerText = "Xem";
+           
                     viewLink.classList.add('text-blue-500', 'hover:underline', 'mr-4');
 
                     const downloadLink = document.createElement('a');
-                    downloadLink.href = `/api/files/download/${file}`;
-                    downloadLink.innerText = "Download";
+                    downloadLink.href = `http://103.20.102.132:9000/api/files/download/${file}`;
+                    downloadLink.innerText = "Tải";
                     downloadLink.classList.add('text-blue-500', 'hover:underline');
+
+                    downloadLink.classList.add('text-blue-500', 'hover:underline', 'mr-4');
+
+                    const removeLink = document.createElement('a');
+                    removeLink.addEventListener('click',()=>{
+                        deleteFile(file);
+                    });
+                    removeLink.classList.add('btn_delete');
+                    
+                    removeLink.innerText = "Xóa";
+                    removeLink.classList.add('text-red-500', 'hover:underline');
 
                     li.appendChild(fileName);
                     li.appendChild(viewLink);
                     li.appendChild(downloadLink);
+                    li.appendChild(removeLink);
 
                     fileListElement.appendChild(li);
                 });
@@ -95,31 +113,38 @@
 
         async function deleteFile(fileName) {
             try {
-                const response = await fetch(`/api/files/delete/${fileName}`, {
+                const response = await fetch(`http://103.20.102.132:9000/api/files/delete/${fileName}`, {
                     method: 'DELETE'
                 });
                 const result = await response.text();
                 console.log(result); // Hiển thị thông báo kết quả
+                loadFileList();
             } catch (error) {
                 console.error('Error deleting file:', error);
             }
+   
+            
         }
 
         // Gọi hàm deleteFile với tên file bạn muốn xóa
-        deleteFile('26189992-77c1-4e41-a37c-3967ce8fd17a_menu (3).pdf');
+       
 
         async function deleteAllFiles() {
             try {
-                const response = await fetch('/api/files/delete-all', {
+                const response = await fetch('http://103.20.102.132:9000/api/files/delete-all', {
                     method: 'DELETE'
                 });
                 const result = await response.text();
-                console.log(result); // Hiển thị thông báo kết quả
+                loadFileList();
             } catch (error) {
                 console.error('Error deleting all files:', error);
             }
         }
 
+        document.getElementById("btn_deleteAll").addEventListener('click',()=>{
+            deleteAllFiles();
+        });
+        
         // Gọi hàm deleteAllFiles để xóa tất cả file
         //deleteAllFiles();
 

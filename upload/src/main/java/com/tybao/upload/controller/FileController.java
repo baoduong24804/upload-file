@@ -12,14 +12,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tybao.upload.service.FileStorageService;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
@@ -33,12 +32,15 @@ public class FileController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("files") List<MultipartFile> file) {
         StringBuilder s = new StringBuilder();
+        if(file.size()<=0){
+            return ResponseEntity.badRequest().body(null);
+        }
+        s.append("["+fileStorageService.getFileStorageLocation()+"]");
         for (MultipartFile multipartFile : file) {
+            
             String fileName = fileStorageService.storeFile(multipartFile);
             s.append(fileName).append(",");
         }
-        
-        
         
         return ResponseEntity.ok("File uploaded successfully: " + s);
     }
