@@ -15,12 +15,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@CrossOrigin(origins = "*")
+
 @RestController
 @RequestMapping("/api/files")
+@CrossOrigin(origins = "*") // Cho phép tất cả các địa chỉ web
 public class FileController {
 
     private final FileStorageService fileStorageService;
@@ -29,20 +31,40 @@ public class FileController {
         this.fileStorageService = fileStorageService;
     }
 
+    // @PostMapping("/upload")
+    // public ResponseEntity<String> uploadFile(@RequestParam("files")
+    // List<MultipartFile> file) {
+    // StringBuilder s = new StringBuilder();
+    // if(file.size()<=0){
+    // return ResponseEntity.badRequest().body(null);
+    // }
+    // s.append("["+fileStorageService.getFileStorageLocation()+"]");
+    // for (MultipartFile multipartFile : file) {
+
+    // String fileName = fileStorageService.storeFile(multipartFile);
+    // s.append(fileName).append(",");
+    // }
+
+    // return ResponseEntity.ok("File uploaded successfully: " + s);
+    // }
+
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("files") List<MultipartFile> file) {
-        StringBuilder s = new StringBuilder();
-        if(file.size()<=0){
-            return ResponseEntity.badRequest().body(null);
+    public ResponseEntity<String> uploadFile(@RequestParam("files") List<MultipartFile> files) {
+        if (files.isEmpty()) {
+            return ResponseEntity.badRequest().body("No files provided");
         }
-        s.append("["+fileStorageService.getFileStorageLocation()+"]");
-        for (MultipartFile multipartFile : file) {
-            
-            String fileName = fileStorageService.storeFile(multipartFile);
-            s.append(fileName).append(",");
-        }
-        
-        return ResponseEntity.ok("File uploaded successfully: " + s);
+
+        String location = "[" + fileStorageService.getFileStorageLocation() + "]";
+        List<CompletableFuture<String>> futures = files.stream()
+                .map(fileStorageService::storeFile)
+                .collect(Collectors.toList());
+
+        // Chờ tất cả các tác vụ hoàn thành
+        List<String> fileNames = futures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok("File uploaded successfully: " + location + String.join(",", fileNames));
     }
 
     @DeleteMapping("/delete/{fileName}")
@@ -50,9 +72,9 @@ public class FileController {
         try {
             fileStorageService.deleteFile(fileName);
             return ResponseEntity.ok("File deleted successfully: " + fileName);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body("Failed to delete file: " + fileName);
+                    .body("Failed to delete file: " + fileName);
         }
     }
 
@@ -61,13 +83,11 @@ public class FileController {
         try {
             fileStorageService.deleteAllFiles();
             return ResponseEntity.ok("All files deleted successfully.");
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body("Failed to delete all files.");
+                    .body("Failed to delete all files.");
         }
     }
-
-
 
     @GetMapping("/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws IOException {

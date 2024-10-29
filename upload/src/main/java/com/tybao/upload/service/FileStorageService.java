@@ -1,5 +1,6 @@
 package com.tybao.upload.service;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class FileStorageService {
@@ -30,25 +32,53 @@ public class FileStorageService {
         }
     }
 
-    public String storeFile(MultipartFile file) {
-        try {
+    // @Async
+    // public String storeFile(MultipartFile file) {
+    // try {
 
+    // String UUID = uniqueIDCreate(file.getOriginalFilename());
+    // String UUIDImageName = UUID + file.getOriginalFilename();
+    // Path targetLocation = this.fileStorageLocation.resolve(UUIDImageName);
+    // System.out.println(targetLocation);
+    // Files.copy(file.getInputStream(), targetLocation,
+    // StandardCopyOption.REPLACE_EXISTING);
+    // return targetLocation.getFileName().toString();
+    // } catch (IOException ex) {
+    // throw new RuntimeException("Could not store file " +
+    // file.getOriginalFilename() + ". Please try again!",
+    // ex);
+    // }
+    // }
+    @Async
+    public CompletableFuture<String> storeFile(MultipartFile file) {
+        try {
+            // Tạo tên tệp UUID và đường dẫn
             String UUID = uniqueIDCreate(file.getOriginalFilename());
             String UUIDImageName = UUID + file.getOriginalFilename();
             Path targetLocation = this.fileStorageLocation.resolve(UUIDImageName);
-            System.out.println(targetLocation);
+    
+            // Lưu tệp vào đích
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            return targetLocation.getFileName().toString();
+    
+            // Trả về tên tệp sau khi lưu thành công
+            return CompletableFuture.completedFuture(UUIDImageName);
         } catch (IOException ex) {
-            throw new RuntimeException("Could not store file " + file.getOriginalFilename() + ". Please try again!",
-                    ex);
+            // Xử lý ngoại lệ khi có lỗi
+            ex.printStackTrace();
+            return CompletableFuture.completedFuture(null); // hoặc trả về lỗi tùy chỉnh
         }
     }
 
-    public void deleteFile(String fileName) throws IOException {
-        Path filePath = fileStorageLocation.resolve(fileName);
-        Files.deleteIfExists(filePath); // Xóa file nếu tồn tại
+    @Async
+    public void deleteFile(String fileName) {
+        try {
+            Path filePath = fileStorageLocation.resolve(fileName);
+            Files.deleteIfExists(filePath); // Xóa file nếu tồn tại
+        } catch (IOException e) {
+            e.printStackTrace(); // Log lỗi để theo dõi
+        }
     }
+    
 
     public void deleteAllFiles() throws IOException {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(fileStorageLocation)) {
