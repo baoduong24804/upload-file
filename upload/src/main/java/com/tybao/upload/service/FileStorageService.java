@@ -89,18 +89,20 @@ public class FileStorageService {
     }
 
     public String uniqueIDCreate(String fileUploadName) {
-        // Tạo ID duy nhất cho file
-        String uniqueID = UUID.randomUUID().toString() + "_";
+        // Tạo ID duy nhất cho file với UUID ngắn (8 ký tự)
+        String uniqueID = UUID.randomUUID().toString().substring(0, 16) + "_";
+        
         for (int i = 0; i < 99; i++) {
             if (checkExistFile(uniqueID + fileUploadName)) {
-                // neu ton tai file
-                uniqueID = UUID.randomUUID().toString() + "_";
+                // Nếu tệp đã tồn tại, tạo lại uniqueID
+                uniqueID = UUID.randomUUID().toString().substring(0, 16) + "_";
             } else {
                 break;
             }
         }
         return uniqueID;
     }
+    
 
     public Boolean checkExistFile(String fileName) {
         if (loadFile(fileName) == null) {
