@@ -15,8 +15,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -98,12 +100,30 @@ public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("files") Lis
         List<String> fileNames = futures.stream()
                 .map(CompletableFuture::join)
                 .collect(Collectors.toList());
-
+        String pdf = "https://anime404.click/api/files/view/pdf/";
+        String other = "https://anime404.click/api/files/view/";
         // Gán kết quả vào phản hồi
         if (fileNames.size() == 1) {
-            response.put("file", fileNames.get(0));
+            //System.out.println(fileNames.get(0).toString());
+            if(fileNames.get(0).toString().endsWith(".pdf")){
+                response.put("file", pdf+fileNames.get(0));
+            }else{
+                response.put("file", other+fileNames.get(0));
+            }
+
         } else {
-            response.put("files", fileNames);
+            Set<String> set = new HashSet<>();
+            for (String string : fileNames) {
+                //System.out.println(string);
+                if(string.toString().endsWith(".pdf")){
+                    set.add(pdf+string);
+                }else{
+                    set.add(other+string);
+                }
+                    
+                
+            }
+            response.put("files", set);
         }
 
         response.put("status", true);
