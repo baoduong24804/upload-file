@@ -14,7 +14,9 @@ import com.tybao.upload.service.FileStorageService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,7 +24,7 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "*") // Cho phép tất cả các địa chỉ web
+@CrossOrigin(origins = {"https://congnghetoday.com", "https://congnghetoday.click", "https://anime404.click"}) 
 public class FileController {
 
     private final FileStorageService fileStorageService;
@@ -48,13 +50,46 @@ public class FileController {
     // return ResponseEntity.ok("File uploaded successfully: " + s);
     // }
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("files") List<MultipartFile> files) {
-        if (files.isEmpty()) {
-            return ResponseEntity.badRequest().body("No files provided");
-        }
+    @GetMapping("/view/pdf/{fileName}")
+    public ResponseEntity<Resource> viewPdf(@PathVariable String fileName) throws IOException {
+        try {
+            Path filePath = fileStorageService.loadFile(fileName);
+            Resource resource = new UrlResource(filePath.toUri());
 
-        String location = "[" + fileStorageService.getFileStorageLocation() + "]";
+            String contentType = Files.probeContentType(filePath);
+            
+            // Kiểm tra xem file có phải là PDF không
+            if (contentType == null || !contentType.equals("application/pdf")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+            }
+
+            return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/upload")
+public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("files") List<MultipartFile> files) {
+    Map<String, Object> response = new HashMap<>();
+
+    // Kiểm tra danh sách file có trống không
+    if (files.isEmpty()) {
+        response.put("message", "Không tìm thấy file, bạn quên hả? :>");
+        response.put("status", false);
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    // Lấy vị trí lưu trữ file
+    String location = "["+fileStorageService.getFileStorageLocation()+"]";
+    response.put("location", location);
+
+    try {
+        // Xử lý lưu file bất đồng bộ
         List<CompletableFuture<String>> futures = files.stream()
                 .map(fileStorageService::storeFile)
                 .collect(Collectors.toList());
@@ -64,30 +99,47 @@ public class FileController {
                 .map(CompletableFuture::join)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok("File uploaded successfully: " + location + String.join(",", fileNames));
+        // Gán kết quả vào phản hồi
+        if (fileNames.size() == 1) {
+            response.put("file", fileNames.get(0));
+        } else {
+            response.put("files", fileNames);
+        }
+
+        response.put("status", true);
+        response.put("message", "Tải file lên thành công!");
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        // Xử lý lỗi nếu xảy ra
+        response.put("status", false);
+        response.put("message", "Đã xảy ra lỗi trong quá trình tải file lên!");
+        response.put("error", e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+}
+
 
     @DeleteMapping("/delete/{fileName}")
     public ResponseEntity<String> deleteFile(@PathVariable String fileName) {
         try {
             fileStorageService.deleteFile(fileName);
-            return ResponseEntity.ok("File deleted successfully: " + fileName);
+            return ResponseEntity.ok("Đã xóa thành công file: " + fileName);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to delete file: " + fileName);
+                    .body("Xóa không thành công file: " + fileName);
         }
     }
 
-    @DeleteMapping("/delete-all")
-    public ResponseEntity<String> deleteAllFiles() {
-        try {
-            fileStorageService.deleteAllFiles();
-            return ResponseEntity.ok("All files deleted successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to delete all files.");
-        }
-    }
+    // @DeleteMapping("/delete-all")
+    // public ResponseEntity<String> deleteAllFiles() {
+    //     try {
+    //         fileStorageService.deleteAllFiles();
+    //         return ResponseEntity.ok("All files deleted successfully.");
+    //     } catch (Exception e) {
+    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    //                 .body("Failed to delete all files.");
+    //     }
+    // }
 
     @GetMapping("/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws IOException {

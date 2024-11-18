@@ -8,8 +8,76 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
 </head>
 
+
 <body class="bg-gray-100 p-8">
+
+
+
+
     <div class="max-w-lg mx-auto bg-white shadow-md rounded p-6">
+        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-8">Tài liệu API - Quản lý Tệp</h1>
+
+        <!-- API Section -->
+        <div class="space-y-8">
+            <!-- Upload Files -->
+            <div class="p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition duration-200">
+                <h2 class="text-xl font-semibold text-indigo-700">1. Tải Lên Tệp</h2>
+                <p><strong>Phương thức:</strong> <span class="text-blue-600">POST</span></p>
+                <p><strong>Endpoint:</strong> <code class="bg-gray-200 p-1 rounded">/api/files/upload</code></p>
+                <p><strong>Mô tả:</strong> Tải lên nhiều tệp lên máy chủ.</p>
+                <p><strong>Tham số yêu cầu:</strong> <code>files</code> (Danh sách tệp - multipart/form-data)</p>
+                <p><strong>Phản hồi:</strong> <code>200 OK</code> hoặc <code>400 Bad Request</code></p>
+            </div>
+
+            <!-- Delete File -->
+            <div class="p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition duration-200">
+                <h2 class="text-xl font-semibold text-indigo-700">2. Xóa Tệp</h2>
+                <p><strong>Phương thức:</strong> <span class="text-red-600">DELETE</span></p>
+                <p><strong>Endpoint:</strong> <code class="bg-gray-200 p-1 rounded">/api/files/delete/{fileName}</code>
+                </p>
+                <p><strong>Mô tả:</strong> Xóa tệp bằng tên tệp.</p>
+                <p><strong>Phản hồi:</strong> <code>200 OK</code> hoặc <code>500 Internal Server Error</code></p>
+            </div>
+
+            <!-- Delete All Files -->
+            <div class="p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition duration-200">
+                <h2 class="text-xl font-semibold text-indigo-700">3. Xóa Tất Cả Tệp</h2>
+                <p><strong>Phương thức:</strong> <span class="text-red-600">DELETE</span></p>
+                <p><strong>Endpoint:</strong> <code class="bg-gray-200 p-1 rounded">/api/files/delete-all</code></p>
+                <p><strong>Mô tả:</strong> Xóa toàn bộ tệp trên máy chủ.</p>
+                <p><strong>Phản hồi:</strong> <code>200 OK</code> hoặc <code>500 Internal Server Error</code></p>
+            </div>
+
+            <!-- Download File -->
+            <div class="p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition duration-200">
+                <h2 class="text-xl font-semibold text-indigo-700">4. Tải Xuống Tệp</h2>
+                <p><strong>Phương thức:</strong> <span class="text-green-600">GET</span></p>
+                <p><strong>Endpoint:</strong> <code
+                        class="bg-gray-200 p-1 rounded">/api/files/download/{fileName}</code></p>
+                <p><strong>Mô tả:</strong> Tải xuống tệp bằng tên tệp.</p>
+                <p><strong>Phản hồi:</strong> <code>200 OK</code> hoặc <code>404 Not Found</code></p>
+            </div>
+
+            <!-- View Image -->
+            <div class="p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition duration-200">
+                <h2 class="text-xl font-semibold text-indigo-700">5. Xem Hình Ảnh</h2>
+                <p><strong>Phương thức:</strong> <span class="text-green-600">GET</span></p>
+                <p><strong>Endpoint:</strong> <code class="bg-gray-200 p-1 rounded">/api/files/view/{fileName}</code>
+                </p>
+                <p><strong>Mô tả:</strong> Hiển thị tệp hình ảnh (nếu là ảnh).</p>
+                <p><strong>Phản hồi:</strong> <code>200 OK</code> hoặc <code>404 Not Found</code></p>
+            </div>
+
+            <!-- Get All Files -->
+            <div class="p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition duration-200">
+                <h2 class="text-xl font-semibold text-indigo-700">6. Lấy Danh Sách Tệp</h2>
+                <p><strong>Phương thức:</strong> <span class="text-green-600">GET</span></p>
+                <p><strong>Endpoint:</strong> <code class="bg-gray-200 p-1 rounded">/api/files/view/all</code></p>
+                <p><strong>Mô tả:</strong> Lấy danh sách tất cả tệp trên máy chủ.</p>
+                <p><strong>Phản hồi:</strong> <code>200 OK</code> hoặc <code>500 Internal Server Error</code></p>
+            </div>
+        </div>
+
         <h1 class="text-2xl font-bold mb-4">Upload File (Image or PDF)</h1>
 
         <!-- Upload form -->
@@ -21,7 +89,8 @@
                 Tải ảnh lên
             </button>
         </form>
-        <button type="button" id="btn_deleteAll" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+        <button type="button" id="btn_deleteAll"
+            class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
             Xóa hết ảnh
         </button>
 
@@ -30,7 +99,7 @@
 
         <!-- Uploaded files list -->
         <h2 class="text-xl font-semibold mt-6">Files đã upload</h2>
-        
+
         <ul id="fileList" class="mt-4 space-y-2">
             <!-- List of uploaded files will be added here dynamically -->
         </ul>
@@ -49,12 +118,17 @@
             }
 
             try {
-                const response = await fetch('https://anime404.click/api/files/upload', {
+                const response = await fetch('http://localhost:8081/api/files/upload', {
                     method: 'POST',
                     body: formData
                 });
-                const result = await response.text();
-                document.getElementById('message').innerText = result;
+                const result = await response.json();
+                //const data = await response.json();
+
+                // Log dữ liệu phản hồi
+                //console.log("Response data:", result);
+
+                document.getElementById('message').innerText = result.message;
                 loadFileList();
             } catch (error) {
                 console.error('Error uploading files:', error);
@@ -66,7 +140,7 @@
             const fileListElement = document.getElementById('fileList');
             fileListElement.innerHTML = '';
             try {
-                const response = await fetch('https://anime404.click/api/files/view/all');  // Update API path if needed
+                const response = await fetch('http://localhost:8081/api/files/view/all');  // Update API path if needed
                 const files = await response.json();
 
                 files.forEach(file => {
@@ -74,30 +148,38 @@
                     li.classList.add('flex', 'justify-between', 'items-center', 'border', 'rounded', 'p-2');
 
                     const fileName = document.createElement('span');
-                    fileName.classList.add('overflow-hidden','overflow-ellipsis','whitespace-nowrap');
+                    fileName.classList.add('overflow-hidden', 'overflow-ellipsis', 'whitespace-nowrap');
                     fileName.innerText = file;
 
                     const viewLink = document.createElement('a');
-                    viewLink.href = `https://anime404.click/api/files/view/${file}`;
+
+                    // Kiểm tra nếu file có đuôi là .pdf
+                    if (file.endsWith('.pdf')) {
+                        viewLink.href = `http://localhost:8081/api/files/view/pdf/${file}`;
+                    } else {
+                        viewLink.href = `http://localhost:8081/api/files/view/${file}`;
+                    }
+
+
                     viewLink.innerText = "Xem";
-           
+
                     viewLink.classList.add('text-blue-500', 'hover:underline', 'mr-4');
 
                     const downloadLink = document.createElement('a');
-                    downloadLink.href = `https://anime404.click/api/files/download/${file}`;
+                    downloadLink.href = `http://localhost:8081/api/files/download/${file}`;
                     downloadLink.innerText = "Tải";
                     downloadLink.classList.add('text-blue-500', 'hover:underline');
 
                     downloadLink.classList.add('text-blue-500', 'hover:underline', 'mr-4');
 
                     const removeLink = document.createElement('a');
-                    removeLink.addEventListener('click',()=>{
+                    removeLink.addEventListener('click', () => {
                         deleteFile(file);
                     });
                     removeLink.classList.add('btn_delete');
-                    
+
                     removeLink.innerText = "Xóa";
-                    removeLink.classList.add('text-red-500', 'hover:underline');
+                    removeLink.classList.add('text-red-500', 'hover:underline', 'cursor-pointer');
 
                     li.appendChild(fileName);
                     li.appendChild(viewLink);
@@ -113,7 +195,7 @@
 
         async function deleteFile(fileName) {
             try {
-                const response = await fetch(`https://anime404.click/api/files/delete/${fileName}`, {
+                const response = await fetch(`http://localhost:8081/api/files/delete/${fileName}`, {
                     method: 'DELETE'
                 });
                 const result = await response.text();
@@ -122,16 +204,16 @@
             } catch (error) {
                 console.error('Error deleting file:', error);
             }
-   
-            
+
+
         }
 
         // Gọi hàm deleteFile với tên file bạn muốn xóa
-       
+
 
         async function deleteAllFiles() {
             try {
-                const response = await fetch('https://anime404.click/api/files/delete-all', {
+                const response = await fetch('http://localhost:8081/api/files/delete-all', {
                     method: 'DELETE'
                 });
                 const result = await response.text();
@@ -141,10 +223,10 @@
             }
         }
 
-        document.getElementById("btn_deleteAll").addEventListener('click',()=>{
+        document.getElementById("btn_deleteAll").addEventListener('click', () => {
             deleteAllFiles();
         });
-        
+
         // Gọi hàm deleteAllFiles để xóa tất cả file
         //deleteAllFiles();
 

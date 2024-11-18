@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @Controller
-@CrossOrigin(origins = "*") // Cho phép tất cả các địa chỉ web
+@CrossOrigin(origins = {"https://congnghetoday.com", "https://congnghetoday.click", "https://anime404.click"}) 
 public class HomeController {
     @GetMapping("/")
     public String getMethodName() {
