@@ -26,7 +26,8 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = {"https://congnghetoday.com", "https://congnghetoday.click", "https://anime404.click"}) 
+//@CrossOrigin(origins = {"https://congnghetoday.com", "https://congnghetoday.click", "https://anime404.click"}) 
+@CrossOrigin(origins = {"*"})
 public class FileController {
 
     private final FileStorageService fileStorageService;
